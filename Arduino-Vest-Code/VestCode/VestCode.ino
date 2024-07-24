@@ -17,10 +17,13 @@ const char* pwd = "your-password";
 // for ArduinoOSC
 const int recv_port = 1025;
 
-PCA9685 pwmController;
+PCA9685 pwmFront(B000000);
+PCA9685 pwmBack(B000001);
+// Not a real device, will act as a proxy to pwmFront and pwmBack, using all-call i2c address 0xE0, and default Wire @400kHz
+PCA9685 pwmControllerAll(PCA9685_I2C_DEF_ALLCALL_PROXYADR);
 
 //Motor Index Mapping (index used to send motor data to correct motor)
-int motorMap [] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+int motorMap [] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31}; //Index Mapping (index used to send motor data to correct motor)
 
 
 void setup() {
@@ -28,7 +31,9 @@ void setup() {
   Serial.begin(115200);
 
   Wire.begin();
-  pwmController.init();
+    pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line
+    pwmFront.init();
+    pwmBack.init();
 
   delay(2000);
 
@@ -65,35 +70,23 @@ void setup() {
   Serial.print("starting server");
 
 //ignore this, its literally just the startup chime
-  for (int i = 0; i < 16; i++) {
-    pwmController.setChannelOn(i);
-    pwmController.setChannelOn(i+16);
-  }
+  pwmFront.setAllChannelsPWM(4096);
+  pwmBack.setAllChannelsPWM(4096);
   delay(500);
-  for (int i = 0; i < 16; i++) {
-    pwmController.setChannelOff(i);
-    pwmController.setChannelOff(i+16);
-  }
+  pwmFront.setAllChannelsPWM(0);
+  pwmBack.setAllChannelsPWM(0);
   delay(50);
-  for (int i = 0; i < 16; i++) {
-  pwmController.setChannelPWM(i, floatToDuty(0.6));
-  pwmController.setChannelPWM(i+16, floatToDuty(0.6));
-  }
+  pwmFront.setAllChannelsPWM(floatToDuty(0.6));
+  pwmBack.setAllChannelsPWM(floatToDuty(0.6));
   delay(150);
-  for (int i = 0; i < 16; i++) {
-    pwmController.setChannelOff(i);
-    pwmController.setChannelOff(i+16);
-  }
+  pwmFront.setAllChannelsPWM(0);
+  pwmBack.setAllChannelsPWM(0);
   delay(100);
-  for (int i = 0; i < 16; i++) {
-    pwmController.setChannelOn(i);
-    pwmController.setChannelOn(i+16);
-  }
+  pwmFront.setAllChannelsPWM(4096);
+  pwmBack.setAllChannelsPWM(4096);
   delay(500);
-  for (int i = 0; i < 16; i++) {
-    pwmController.setChannelOff(i);
-    pwmController.setChannelOff(i+16);
-  }
+  pwmFront.setAllChannelsPWM(0);
+  pwmBack.setAllChannelsPWM(0);
 }
 
 uint16_t floatToDuty(float e){
@@ -123,8 +116,11 @@ void handle_values(String args){
     }
   }
   valArray[index] = floatToDuty(temp.toFloat());
-  for (int i = 0; i < 32; i++) {
-    pwmController.setChannelPWM(i, valArray[i]);
+  for (int i = 0; i < 16; i++) {
+    pwmFront.setChannelPWM(i, valArray[i]);
+  }
+  for (int i = 0; i < 16; i++) {
+    pwmBack.setChannelPWM(i, valArray[i+16]);
   }
 }
 
