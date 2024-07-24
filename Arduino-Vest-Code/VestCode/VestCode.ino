@@ -110,12 +110,12 @@ void handle_values(String args){
       temp += args[i];
     }
     else{
-    valArray[index] = floatToDuty(temp.toFloat());
+    valArray[motorMap[index]] = floatToDuty(temp.toFloat());
       index++;
       temp = "";
     }
   }
-  valArray[index] = floatToDuty(temp.toFloat());
+  valArray[motorMap[index]] = floatToDuty(temp.toFloat());
   for (int i = 0; i < 16; i++) {
     pwmFront.setChannelPWM(i, valArray[i]);
   }
