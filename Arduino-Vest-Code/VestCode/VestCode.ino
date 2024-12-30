@@ -103,7 +103,7 @@ void handle_values(String args){
   
   String temp = "";
   int index = 0;
-  for (int i = 0; i < args.length(); i++)
+  for (int i = 1; i < args.length(); i++)
   {
     if (args[i] != ',')
     {
